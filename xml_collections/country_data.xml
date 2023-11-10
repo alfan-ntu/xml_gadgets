@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<data name="country_table">
+    <country name="Liechtenstein" continent="Europe">
+        <rank>1</rank>
+        <year>2008</year>
+        <gdppc>141100</gdppc>
+        <neighbor name="Austria" direction="E">
+          <hostility>yes</hostility>
+        </neighbor>
+        <neighbor name="Switzerland" direction="W">
+          <hostility>yes</hostility>
+        </neighbor>
+    </country>
+    <country name="Singapore" continent="Asia">
+        <rank>4</rank>
+        <year>2011</year>
+        <gdppc>59900</gdppc>
+        <neighbor name="Malaysia" direction="N">
+          <hostility>yes</hostility>
+        </neighbor>
+    </country>
+    <country name="Panama" continent="South Amera">
+        <rank>68</rank>
+        <year>2011</year>
+        <gdppc>13600</gdppc>
+        <neighbor name="Costa Rica" direction="W">
+          <hostility>yes</hostility>
+        </neighbor>
+        <neighbor name="Colombia" direction="E">
+          <hostility>no</hostility>
+        </neighbor>
+    </country>
+</data>
