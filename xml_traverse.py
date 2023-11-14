@@ -4,9 +4,9 @@
                 2) search a certain element
                 3) update a specific element with input value
                  of the input xml file
-    Date: 2023/11/12
+    Date: 2023/11/14
     Author:
-    Version: 0.1b
+    Version: 0.1c
     Revision History:
         - 2023/11/9: v. 0.1a the initial version
     Reference:
@@ -19,8 +19,10 @@
 """
 import os.path
 import xml.etree.ElementTree as ET
-import pdb
 import inspect
+
+from lxml import etree
+import re, collections
 
 DIRECT_CALL = 1
 CALL_VIA_DUMP_DEBUG = 2
@@ -121,15 +123,37 @@ def search_element(node, tag, attrib=None, attrib_value=None):
     return good_node
 
 
-if __name__ == "__main__":
-    # For experimental purpose only
-    fn, lno = get_caller_info()
-    print(f'current file name: {fn}, current line number: {lno}')
+def construct_xml_tree_structure(root):
+    """
+    Return a tree structure from the input root element
 
-    tree = ET.parse('./xml_collections/country_data.xml')
-    root = tree.getroot()
+    @param root: root element
+    @output struct_string: structure of the input tree
+    """
+    # Initialize an empty tree structure
+    xml_tree = collections.OrderedDict()
+    for element in root.iter():
+        path = re.sub('\[[0-9]+\]', '', element.getroottree().getpath(element))
+        # print(f'path to the element {element.tag}: {element.getroottree().getpath(element)}')
+        if path not in xml_tree:
+            xml_tree[path] = []
+        if len(element.keys()) > 0:
+            # use extend function to add
+            xml_tree[path].extend(attrib for attrib in element.keys() if attrib not in xml_tree[path])
 
-    # traverse_tree(root, 0)
+    for path, attrib in xml_tree.items():
+        print(f'path: {path} with attribute {attrib}')
+        indent = path.count('/') - 1
+        print('{0}{1}: {2}: [{3}]'.format('    ' * indent, indent, path.split('/')[-1], \
+                                         ', '.join(attrib) if len(attrib) > 0 else '-'))
+
+
+def test_exercise(root):
+    """
+    Exercises implemented functions on test xml file
+
+    @input root: root element of the input xml file
+    """
     search_tag = 'neighbor'
     search_attrib = 'name'
     attrib_value = 'Malaysia'
@@ -148,3 +172,16 @@ if __name__ == "__main__":
             print(f'Node identified: {r_node}')
             dump_debug_info(f'Target neighbor country {attrib_value} is found!')
             dump_debug_info(f'It\'s hostility status is: {r_node.find("hostility").text}')
+
+
+if __name__ == "__main__":
+    # For experimental purpose only
+    fn, lno = get_caller_info()
+    print(f'current file name: {fn}, current line number: {lno}')
+
+    # read in an external xml file and get the root element of the xml file
+    tree = etree.parse('./xml_collections/country_data.xml')
+    root = tree.getroot()
+
+    construct_xml_tree_structure(root)
+    # test_exercise(root)
