@@ -22,6 +22,6 @@ This is a simple xml utility implemented in Python, including xml file parsing, 
 ### References
 1. ElementTree XML PAI: https://docs.python.org/3/library/xml.etree.elementtree.html
 2. lxml: https://lxml.de/api/lxml-module.html
-  - https://lxml.de/api/lxml.etree._ElementTree-class.html#getpath
-  - https://lxml.de/api/lxml.etree._Element-class.html#getroottree
+   - https://lxml.de/api/lxml.etree._ElementTree-class.html#getpath
+   - https://lxml.de/api/lxml.etree._Element-class.html#getroottree
 
