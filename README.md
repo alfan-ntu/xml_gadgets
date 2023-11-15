@@ -2,11 +2,11 @@
 This is a simple xml utility implemented in Python, including xml file parsing, traversing, searching by specified tag name ... in an input xml file. Also implemented includes tools to construct a tree structure. 
 
 ### Important Functions
-- construct_xml_tree_structure(): Build the tree structure of the target xml file 
-- element_with_attribute(): Determine if the element contains attributes or not
-- element_with_text(): Determine if the element contains text or not
-- search_element_by_path(): Search element using a XPath variable
-- traverse_tree(): Traverse the xml file 
+1. construct_xml_tree_structure(): Build the tree structure of the target xml file 
+2. element_with_attribute(): Determine if the element contains attributes or not 
+3. element_with_text(): Determine if the element contains text or not 
+4. search_element_by_path(): Search element using a XPath variable 
+5. traverse_tree(): Traverse the xml file 
 
 ### Base Packages
 1. The ElementTree XML API
@@ -19,9 +19,9 @@ This is a simple xml utility implemented in Python, including xml file parsing, 
       e.g. <country name="Liechtenstein" continent="Europe">
    - Elements may contain text contents
    
-# References
-- https://docs.python.org/3/library/xml.etree.elementtree.html
-- https://lxml.de/api/lxml-module.html
+### References
+1. ElementTree XML PAI: https://docs.python.org/3/library/xml.etree.elementtree.html
+2. lxml: https://lxml.de/api/lxml-module.html
   - https://lxml.de/api/lxml.etree._ElementTree-class.html#getpath
   - https://lxml.de/api/lxml.etree._Element-class.html#getroottree
 
