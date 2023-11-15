@@ -32,7 +32,7 @@ def get_caller_info(call_depth=DIRECT_CALL):
     """
     Return the caller's file name and line number
 
-    @input call_depth: determine if the caller is from 'dump_debug_info(str)' or directly from the caller
+    @param call_depth: determine if the caller is from 'dump_debug_info(str)' or directly from the caller
     @return filename, linenumber
     """
     caller_frame = inspect.stack()[call_depth]
@@ -43,14 +43,18 @@ def get_caller_info(call_depth=DIRECT_CALL):
     return caller_filename, caller_lineno
 
 
-def dump_debug_info(str):
+def dump_debug_info(str, detailed=True):
     """
     Dump debug information with caller filename and caller linenumber
 
-    @input str: dump information
+    @param str: dump information
+    @param detailed: boolean variable determining the display verbosity level, detailed output by default
     """
-    fn, lno = get_caller_info(CALL_VIA_DUMP_DEBUG)
-    print(f'{fn}:{lno} {str}')
+    if detailed:
+        fn, lno = get_caller_info(CALL_VIA_DUMP_DEBUG)
+        print(f'{fn}:{lno} {str}')
+    else:
+        print(str)
 
 
 def tab_combo(level):
@@ -123,36 +127,65 @@ def search_element(node, tag, attrib=None, attrib_value=None):
     return good_node
 
 
-def construct_xml_tree_structure(root):
+def construct_xml_tree_structure(root, display_tree):
     """
     Return a tree structure from the input root element
 
     @param root: root element
-    @output struct_string: structure of the input tree
+    @param display_tree: flag to determine if tree display is required or not
+    @return xml_tree: tag, attribute iterates of the input xml tree
     """
     # Initialize an empty tree structure
     xml_tree = collections.OrderedDict()
     for element in root.iter():
         path = re.sub('\[[0-9]+\]', '', element.getroottree().getpath(element))
-        # print(f'path to the element {element.tag}: {element.getroottree().getpath(element)}')
+        if display_tree:
+            print(f'path to the element {element.tag}: {element.getroottree().getpath(element)}')
         if path not in xml_tree:
             xml_tree[path] = []
         if len(element.keys()) > 0:
             # use extend function to add
             xml_tree[path].extend(attrib for attrib in element.keys() if attrib not in xml_tree[path])
 
-    for path, attrib in xml_tree.items():
-        print(f'path: {path} with attribute {attrib}')
-        indent = path.count('/') - 1
-        print('{0}{1}: {2}: [{3}]'.format('    ' * indent, indent, path.split('/')[-1], \
-                                         ', '.join(attrib) if len(attrib) > 0 else '-'))
+    return xml_tree
+
+
+def element_with_attribute(element):
+    """
+    Determine if the input element has attributes or not
+
+    @param element: the xml element to check
+    @return : True, if the element has attributes; False, otherwise
+    """
+    return bool(element.attrib)
+
+
+def search_element_by_path(root, path):
+    """
+    Search specific element using a full XPath
+
+    @param root: root node of this search
+    @param path: XPath to the element to search
+    @return : the target element or None
+    """
+    element_found = root.xpath(path)
+    if element_found is not None:
+        # print(f'Check the text of the element found: {element_found[0].text}')
+        for i in range(len(element_found)):
+            if element_with_attribute(element_found[i]) is True:
+                display_str = f'Element of the specified path {path} is found! Value is {element_found[i].attrib}'
+                dump_debug_info(display_str, False)
+    else:
+        dump_debug_info(f'Could not find {path}!')
+
+    return element_found
 
 
 def test_exercise(root):
     """
     Exercises implemented functions on test xml file
 
-    @input root: root element of the input xml file
+    @param root: root element of the input xml file
     """
     search_tag = 'neighbor'
     search_attrib = 'name'
@@ -162,6 +195,7 @@ def test_exercise(root):
     else:
         dump_debug_info(f'Found no tag named: {search_tag}')
 
+    # Traverse the tree and find the target element using tag, attribute and attribute value
     for child in root:
         search_tag = 'neighbor'
         search_attrib = 'name'
@@ -173,6 +207,11 @@ def test_exercise(root):
             dump_debug_info(f'Target neighbor country {attrib_value} is found!')
             dump_debug_info(f'It\'s hostility status is: {r_node.find("hostility").text}')
 
+    # Search the element by using a full XPath variable
+    element_found = search_element_by_path(root, "/data/country[4]/neighbor")
+    if element_found is not None:
+        dump_debug_info(f'Parent element tag: {element_found[0].getparent().get("name")}')
+
 
 if __name__ == "__main__":
     # For experimental purpose only
@@ -183,5 +222,12 @@ if __name__ == "__main__":
     tree = etree.parse('./xml_collections/country_data.xml')
     root = tree.getroot()
 
-    construct_xml_tree_structure(root)
-    # test_exercise(root)
+    xml_tree = construct_xml_tree_structure(root, True)
+    print(f'Display the tree structure:')
+    for path, attrib in xml_tree.items():
+        indent = path.count('/') - 1
+        print('{0}{1}: {2}: [{3}]'.format('    ' * indent, indent, path.split('/')[-1], \
+                                          ', '.join(attrib) if len(attrib) > 0 else '-'))
+
+    # function exercising several xml utilities implemented
+    test_exercise(root)
