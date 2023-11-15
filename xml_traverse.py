@@ -4,17 +4,15 @@
                 2) search a certain element
                 3) update a specific element with input value
                  of the input xml file
-    Date: 2023/11/14
+    Date: 2023/11/15
     Author:
-    Version: 0.1c
+    Version: 0.1d
     Revision History:
+        - 2023/11/15: v. 0.1d preliminarily completed
         - 2023/11/9: v. 0.1a the initial version
     Reference:
             1) https://docs.python.org/3/library/xml.etree.elementtree.html
     ToDo's  :
-        - Search an element
-        - Update an element
-        - Add search and replace function
         - Convert the implementation to a class implementation to create a gadget set
 """
 import os.path
@@ -74,7 +72,12 @@ def just_cr(s):
 
 
 def breakdown_dict(dict):
-    """ Breakdown the input dictionary to a series of key:value pairs"""
+    """
+    Breakdown the input dictionary to a series of key:value pairs
+
+    @param dict: attribute list
+    @return : list of key:value in the input attribute
+    """
     element_idx = 1
     rstr = ""
     for key, value in dict.items():
@@ -87,6 +90,7 @@ def breakdown_dict(dict):
 
 def traverse_tree(current, level):
     """ Traverse the xml tree from input node, current, and record the level of this traverse
+
     @param current: current node name
     @param level: sub-level count
     """
@@ -114,6 +118,7 @@ def search_element(node, tag, attrib=None, attrib_value=None):
     @return qualified node
     """
     good_node = None
+    # Note that element.findall(tag) only searches the immediately lower level
     for child in node.findall(tag):
         if len(child.attrib) > 0:
             # print(f'{tag} attribute has {len(child.attrib)} attributes: {child.attrib}')
@@ -160,6 +165,16 @@ def element_with_attribute(element):
     return bool(element.attrib)
 
 
+def element_with_text(element):
+    """
+    Determine if the element has directly associated text content or not
+
+    @param element: the xml element to check
+    @return : True, if the element has text; False, otherwise
+    """
+    # return True if element.text is not None else False
+    return not just_cr(element.text)
+
 def search_element_by_path(root, path):
     """
     Search specific element using a full XPath
@@ -168,32 +183,41 @@ def search_element_by_path(root, path):
     @param path: XPath to the element to search
     @return : the target element or None
     """
+    dump_debug_info(f'Searching XPath {path}')
     element_found = root.xpath(path)
     if element_found is not None:
-        # print(f'Check the text of the element found: {element_found[0].text}')
         for i in range(len(element_found)):
             if element_with_attribute(element_found[i]) is True:
-                display_str = f'Element of the specified path {path} is found! Value is {element_found[i].attrib}'
+                display_str = f'Element of the specified path {path} found! Attribute is {element_found[i].attrib}'
                 dump_debug_info(display_str, False)
+            else:
+                print(f'Element without attributes!')
+            if element_with_text(element_found[i]) is True:
+                print(f'Check the text of the element found: {element_found[i].text}')
+            else:
+                print(f'Blank node element!')
     else:
         dump_debug_info(f'Could not find {path}!')
 
     return element_found
 
 
-def test_exercise(root):
+def search_function_exercise(root):
     """
     Exercises implemented functions on test xml file
 
     @param root: root element of the input xml file
     """
+    # traverse_tree(root, 0)
+
+    # Traverse the first level nodes for the target
     search_tag = 'neighbor'
     search_attrib = 'name'
     attrib_value = 'Malaysia'
     if search_element(root, search_tag, search_attrib, attrib_value) is not None:
         dump_debug_info(f'Tag {search_tag}: attrib:{search_attrib}={attrib_value} is found')
     else:
-        dump_debug_info(f'Found no tag named: {search_tag}')
+        dump_debug_info(f'Found no tag directly under root named: {search_tag}')
 
     # Traverse the tree and find the target element using tag, attribute and attribute value
     for child in root:
@@ -203,14 +227,34 @@ def test_exercise(root):
         # Go one level deeper
         r_node = search_element(child, search_tag, search_attrib, attrib_value)
         if r_node is not None:
-            print(f'Node identified: {r_node}')
             dump_debug_info(f'Target neighbor country {attrib_value} is found!')
             dump_debug_info(f'It\'s hostility status is: {r_node.find("hostility").text}')
 
     # Search the element by using a full XPath variable
-    element_found = search_element_by_path(root, "/data/country[4]/neighbor")
+    target_xpath = "/data/country[4]/neighbor[2]/hostility"
+    element_found = search_element_by_path(root, target_xpath)
     if element_found is not None:
         dump_debug_info(f'Parent element tag: {element_found[0].getparent().get("name")}')
+
+
+def find_and_update(root, path_to_target, new_value):
+    """
+    Find the element and update it's value
+
+    @param root: root element of the xml tree
+    @param path_to_target: path to the target element
+    @param new_value: value to update to the target element
+    @return : True, if update successfully; False, otherwise
+    """
+    target_element = search_element_by_path(root, path_to_target)
+    if target_element is not None:
+        print(f'Original text of {target_element[0].tag} is {target_element[0].text}; To be changed to {new_value}')
+        target_element[0].text = new_value
+        print(f'Updated text of {target_element[0].tag} is {target_element[0].text}')
+        return True
+    else:
+        print(f'Specified target {path_to_target} not found!')
+        return False
 
 
 if __name__ == "__main__":
@@ -219,9 +263,11 @@ if __name__ == "__main__":
     print(f'current file name: {fn}, current line number: {lno}')
 
     # read in an external xml file and get the root element of the xml file
-    tree = etree.parse('./xml_collections/country_data.xml')
+    target_xml = './xml_collections/country_data.xml'
+    tree = etree.parse(target_xml)
     root = tree.getroot()
 
+    # Test the function construct_xml_tree_structure()
     xml_tree = construct_xml_tree_structure(root, True)
     print(f'Display the tree structure:')
     for path, attrib in xml_tree.items():
@@ -230,4 +276,9 @@ if __name__ == "__main__":
                                           ', '.join(attrib) if len(attrib) > 0 else '-'))
 
     # function exercising several xml utilities implemented
-    test_exercise(root)
+    # search_function_exercise(root)
+
+    target_path = "/data/country[3]/rank"
+    # target_path = "/data/country[4]/neighbor[3]"
+    find_and_update(root, target_path, "68")
+    tree.write(target_xml)
